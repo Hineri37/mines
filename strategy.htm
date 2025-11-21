@@ -1,0 +1,872 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Лучшие тактики игры Mines: структурированный подход к динамичной игре</title>
+<meta name="description" content="Узнайте, как работает поле Mines и почему продуманные тактики помогают удерживать контроль и принимать более взвешенные решения в каждой сессии." />
+<link rel="icon" type="image/x-icon" href="/favicon.ico">
+<link rel="shortcut icon" href="/favicon.ico">
+<link rel="apple-touch-icon" href="/favicon.ico">
+<meta name="yandex-verification" content="7b80b35f5447e8c8" />
+<meta name="msapplication-TileImage" content="https://i.ibb.co/B2wwf1x1/mines.jpg">
+<meta property="og:title" content="Лучшие тактики игры Mines: структурированный подход к динамичной игре" />
+<meta property="og:description" content="Узнайте, как работает поле Mines и почему продуманные тактики помогают удерживать контроль и принимать более взвешенные решения в каждой сессии." />
+<meta property="og:url" content="https://mines-game.vercel.app/" />
+<meta property="og:type" content="website" />
+<meta property="og:image" content="https://i.ibb.co/B2wwf1x1/mines.jpg" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="Лучшие тактики игры Mines: структурированный подход к динамичной игре" />
+<meta name="twitter:description" content="Узнайте, как работает поле Mines и почему продуманные тактики помогают удерживать контроль и принимать более взвешенные решения в каждой сессии." />
+<meta name="twitter:image" content="https://i.ibb.co/B2wwf1x1/mines.jpg" />
+<link rel="canonical" href="strategy.html"/> 
+<style>
+  /* ===== PLAYERS ONLINE BADGE ===== */
+  .online-badge {
+    background: rgba(10, 18, 40, 0.65);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid var(--gborder);
+    border-radius: 999px;
+    padding: 8px 24px;
+    margin-top: 12px;
+    font-size: 16px;
+    color: var(--muted);
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+  }
+.online-badge::before {
+  content: "";
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  background: #4ade80;
+  border-radius: 50%;
+  box-shadow: 0 0 12px rgba(74, 222, 128, 0.6);
+  animation: pulse 1.5s infinite ease-in-out;
+}
+@keyframes pulse {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.2);
+    opacity: 0.8;
+  }
+}
+  /* ===== FONTS ===== */
+  @import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@500;700;900&family=Inter:wght@300;400;500&display=swap');
+  :root {
+    --ink: #e6f2ff;
+    --muted: #a3cfff;
+    --sub: #7aa0ff;
+    --accent: #0066cc;
+    --accent-dark: #004c99;
+    --glass: rgba(255, 255, 255, 0.08);
+    --glass-strong: rgba(255, 255, 255, 0.12);
+    --gborder: rgba(255, 255, 255, 0.18);
+    --shadow-1: 0 20px 60px rgba(0, 0, 0, 0.6);
+    --shadow-2: 0 10px 30px rgba(0, 0, 0, 0.5);
+    --container: 1200px;
+    --radius: 24px;
+  }
+  * {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
+  html, body {
+    height: 100%;
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    color: var(--ink);
+    background: linear-gradient(135deg, #081430 0%, #0c1d4a 100%);
+    overflow-x: hidden;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+  body::before, body::after {
+    content: "";
+    position: fixed;
+    inset: -20vmax;
+    z-index: -2;
+    pointer-events: none;
+  }
+  body::before {
+    background:
+      radial-gradient(circle at 15% 20%, rgba(0, 102, 204, 0.15) 0%, transparent 40%),
+      radial-gradient(circle at 85% 80%, rgba(122, 160, 255, 0.12) 0%, transparent 40%),
+      radial-gradient(circle at 50% 120%, rgba(5, 10, 25, 0.7) 0%, transparent 60%),
+      linear-gradient(180deg, #081430, #0c1d4a 100%);
+  }
+  body::after {
+    z-index: -1;
+    opacity: 0.3;
+    mix-blend-mode: overlay;
+    background-image: url('image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="160" height="160" viewBox="0 0 120 120"><filter id="n"><feTurbulence type="fractalNoise" baseFrequency="0.7" numOctaves="2"/></filter><rect width="100%" height="100%" filter="url(%23n)" opacity="0.06"/></svg>');
+    background-size: 160px 160px;
+  }
+  .container {
+    max-width: var(--container);
+    margin: 0 auto;
+    padding: 0 20px;
+  }
+  /* ===== TOPBAR ===== */
+  .topbar {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    background: rgba(8, 15, 35, 0.75);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--gborder);
+  }
+  .topbar__in {
+    height: 68px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .logo {
+    font-family: 'Fredoka', sans-serif;
+    font-weight: 900;
+    font-size: 28px;
+    background: linear-gradient(90deg, #0066cc, #7aa0ff);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  .nav-links {
+    display: flex;
+    gap: 24px;
+    text-transform: uppercase;
+  }
+  .nav-link {
+    color: var(--muted);
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 20px;
+    transition: color 0.2s;
+  }
+  .nav-link:hover {
+    color: #7aa0ff;
+  }
+  .nav-link.active {
+    color: #7aa0ff;
+  }
+  /* ===== HERO BUTTONS ===== */
+  .hero-actions {
+    display: flex;
+    gap: 16px;
+    margin-top: 24px;
+  }
+  .btn {
+    --py: 16px;
+    --px: 28px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: var(--py) var(--px);
+    min-width: 220px;
+    border-radius: 999px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-weight: 900;
+    font-size: 15px;
+    text-decoration: none;
+    position: relative;
+    isolation: isolate;
+    transition: all 0.3s ease;
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+  }
+  .btn-icon {
+    width: 20px;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .btn-glass {
+    color: var(--ink);
+    background: var(--glass-strong);
+    border: 1px solid var(--gborder);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+  }
+  .btn-glass:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 32px rgba(0, 102, 204, 0.3);
+  }
+  .btn-accent {
+    color: white;
+    background: linear-gradient(135deg, var(--accent), var(--accent-dark));
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    box-shadow: 0 8px 24px rgba(0, 76, 153, 0.4);
+  }
+  .btn-accent:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 32px rgba(0, 102, 204, 0.5);
+  }
+  /* ===== HERO ===== */
+  .hero {
+    padding: 90px 0 40px;
+    text-align: center;
+  }
+  .hero__center {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+    max-width: 800px;
+    margin: 0 auto;
+  }
+ .title {
+    font-family: 'Fredoka', sans-serif;
+    font-weight: 900;
+    font-size: clamp(36px, 8vw, 90px);
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+    background: linear-gradient(90deg, #0088ff, #4dabff, #7aa0ff);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    text-shadow: 0 8px 30px rgba(0, 102, 204, 0.4);
+    word-break: break-word;
+    overflow-wrap: break-word;
+  } 
+  .subtitle {
+    color: var(--muted);
+    font-size: 20px;
+    line-height: 1.6;
+    max-width: 680px;
+    margin: 0 auto;
+  }
+  /* ===== SECTION HEADERS ===== */
+  .section {
+    padding: 40px 0;
+  }
+  .head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 30px;
+    flex-wrap: wrap;
+  }
+  .h2 {
+    font-family: 'Fredoka', sans-serif;
+    font-weight: 800;
+    font-size: clamp(28px, 6vw, 64px);
+    background: linear-gradient(90deg, #0088ff, #7aa0ff);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    line-height: 1.2;
+    word-break: break-word;
+    overflow-wrap: break-word;
+  }
+  /* ===== CASINO LIST ===== */
+  .casino-list {
+    display: grid;
+    gap: 18px;
+  }
+  .casino-item {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    padding: 20px 24px;
+    background: var(--glass);
+    border: 1px solid var(--gborder);
+    border-radius: 18px;
+    backdrop-filter: blur(16px);
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+  .casino-item:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
+  }
+  .casino-logo {
+    width: 60px;
+    height: 60px;
+    border-radius: 12px;
+    background: var(--glass-strong);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    color: var(--accent);
+    flex-shrink: 0;
+  }
+  .casino-info {
+    flex: 1;
+  }
+  .casino-name {
+    font-weight: 800;
+    font-size: 18px;
+    margin-bottom: 4px;
+  }
+.casino-name a {
+  color: var(--ink);
+  text-decoration: none;
+  transition: color 0.2s;
+  font-family: 'Fredoka', sans-serif;
+  font-weight: 600;
+  font-size: 19px;
+}
+.casino-name a:hover {
+  color: #7aa0ff;
+  transform: scale(1.02);
+}
+  .casino-bonus {
+    color: var(--muted);
+    font-size: 15px;
+    margin-bottom: 12px;
+  }
+  .casino-play-btn {
+    font-size: 15px;
+    padding: 8px 20px;
+    min-width: 120px;
+    border-radius: 999px;
+    background: var(--glass-strong);
+    color: var(--ink);
+    border: 1px solid var(--gborder);
+    text-decoration: none;
+    font-weight: 800;
+    display: inline-block;
+    transition: transform 0.2s, box-shadow 0.2s, background-color 0.2s;
+    text-align: center;
+    white-space: nowrap;
+  }
+  .casino-play-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.3);
+    background-color: var(--accent);
+    color: white;
+  }
+  @media (max-width: 900px) {
+    .casino-item {
+      flex-direction: column;
+      text-align: center;
+    }
+    .casino-play-btn {
+      margin-top: 12px;
+      width: 100%;
+      max-width: 200px;
+    }
+  }
+  /* ===== ARTICLE BLOCK ===== */
+  .article-card {
+    background: var(--glass);
+    border: 1px solid var(--gborder);
+    border-radius: var(--radius);
+    padding: 32px;
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    box-shadow: var(--shadow-2);
+    line-height: 1.7;
+    font-size: 17px;
+  }
+  .article-title {
+    font-family: 'Fredoka', sans-serif;
+    font-weight: 800;
+    font-size: clamp(24px, 5vw, 27px);
+    margin-bottom: 24px;
+    color: #7aa0ff;
+    word-break: break-word;
+    overflow-wrap: break-word;
+    padding: 0 10px;
+  }
+  .article-card p {
+    margin-bottom: 20px;
+    color: var(--muted);
+  }
+  .article-card p:last-child {
+    margin-bottom: 0;
+  }
+  /* ===== FAQ ===== */
+  details {
+    background: var(--glass);
+    border: 1px solid var(--gborder);
+    border-radius: 16px;
+    padding: 20px;
+    margin-bottom: 14px;
+    backdrop-filter: blur(16px);
+  }
+  summary {
+    font-family: 'Fredoka', sans-serif;
+    font-weight: 700;
+    font-size: 19px;
+    cursor: pointer;
+    outline: none;
+    list-style: none;
+  }
+  summary::-webkit-details-marker {
+    display: none;
+  }
+  summary::before {
+    content: "+ ";
+    color: var(--accent);
+    font-weight: 900;
+  }
+  details[open] summary::before {
+    content: "− ";
+  }
+  details p {
+    color: var(--muted);
+    margin-top: 14px;
+    line-height: 1.7;
+    font-size: 16px;
+  }
+  /* ===== FOOTER ===== */
+  footer {
+    padding: 60px 0 40px;
+  }
+  .foot {
+    background: var(--glass);
+    border: 1px solid var(--gborder);
+    border-radius: 16px;
+    text-align: center;
+    padding: 24px;
+    font-size: 15px;
+    color: var(--sub);
+    backdrop-filter: blur(16px);
+  }
+  .payment-methods {
+    display: flex;
+    justify-content: center;
+    gap: 24px;
+    margin-top: 20px;
+    flex-wrap: wrap;
+  }
+  .payment-logo {
+    height: 32px;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--accent);
+    font-weight: bold;
+  }
+  /* ===== ADAPTIVE ===== */
+  @media (max-width: 900px) {
+    .hero-actions {
+      flex-direction: column;
+      align-items: center;
+    }
+    .hero-actions .btn {
+      min-width: 100%;
+      max-width: 300px;
+      width: 100%;
+    }
+  }
+  @media (max-width: 600px) {
+    .article-title {
+      font-size: clamp(20px, 6vw, 24px);
+      padding: 0 8px;
+    }
+  }
+  .menu-close {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    font-size: 28px;
+    background: none;
+    border: none;
+    color: var(--ink);
+    cursor: pointer;
+    z-index: 9998;
+    pointer-events: auto;
+  }
+  /* ===== MOBILE MENU ===== */
+  .menu-toggle {
+    display: none;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    width: 40px;
+    height: 40px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    z-index: 10000;
+    gap: 4px;
+  }
+  .menu-toggle span {
+    display: block;
+    width: 24px;
+    height: 2px;
+    background-color: var(--ink);
+    transition: all 0.3s ease;
+    border-radius: 2px;
+  }
+  .menu-toggle.active span:nth-child(1) {
+    transform: rotate(45deg) translate(6px, 6px);
+  }
+  .menu-toggle.active span:nth-child(2) {
+    opacity: 0;
+  }
+  .menu-toggle.active span:nth-child(3) {
+    transform: rotate(-45deg) translate(6px, -6px);
+  }
+  .mobile-menu {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100vh;
+    background: linear-gradient(135deg, #081430 0%, #0c1d4a 100%);
+    z-index: 9999;
+    padding-top: 68px;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+  }
+  .mobile-menu.active {
+    display: block;
+  }
+  .mobile-menu .nav-links {
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+    padding: 20px;
+    text-transform: uppercase;
+  }
+  .mobile-menu .nav-link {
+    font-size: 18px;
+    padding: 12px 20px;
+    width: 100%;
+    max-width: 300px;
+    text-align: center;
+    border-radius: 12px;
+    background: var(--glass);
+    border: 1px solid var(--gborder);
+    transition: all 0.2s;
+  }
+  .mobile-menu .nav-link:hover,
+  .mobile-menu .nav-link.active {
+    background: var(--glass-strong);
+    color: #7aa0ff;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  }
+  .menu-close {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: none;
+    border: none;
+    color: var(--ink);
+    cursor: pointer;
+    z-index: 10001;
+    font-size: 24px;
+  }
+  @media (max-width: 900px) {
+    .menu-toggle {
+      display: flex;
+    }
+    .nav-links {
+      display: none;
+    }
+    .mobile-menu .nav-links {
+      display: flex;
+    }
+  }
+</style>
+</head>
+<body>
+<!-- TOPBAR -->
+<div class="topbar">
+  <div class="container topbar__in">
+    <div class="logo">Mines</div>
+    <button class="menu-toggle" id="menuToggle">
+      <span></span>
+      <span></span>
+      <span></span>
+    </button>
+    <nav class="nav-links">
+      <a href="index.html" class="nav-link">Главная</a>
+      <a href="strategy.html" class="nav-link active">Стратегия</a>
+      <a href="demo.html" class="nav-link">Демо</a>
+      <a href="download.html" class="nav-link">Скачать</a>
+      <a href="reviews.html" class="nav-link">Отзывы</a>
+    </nav>
+  </div>
+</div>
+<!-- MOBILE MENU -->
+<div class="mobile-menu" id="mobileMenu">
+  <button class="menu-close" id="menuClose">×</button>
+  <nav class="nav-links">
+      <a href="index.html" class="nav-link">Главная</a>
+      <a href="strategy.html" class="nav-link active">Стратегия</a>
+      <a href="demo.html" class="nav-link">Демо</a>
+      <a href="download.html" class="nav-link">Скачать</a>
+      <a href="reviews.html" class="nav-link">Отзывы</a>
+  </nav>
+</div>
+<!-- HERO -->
+<section class="hero">
+  <div class="container hero__center">
+    <h1 class="title">Игра Mines<br>тактика и стратегия</h1>
+    <div class="online-badge">Играют сейчас: <span id="playerCount">0</span></div>
+    <div class="hero-actions">
+      <a href="https://martin-way-six.com/c0b5e0f74" class="btn btn-accent">
+        <span class="btn-icon">▶</span>
+        Играть
+      </a>
+      <a href="https://martin-way-six.com/c0b5e0f74" class="btn btn-glass">
+        <span class="btn-icon">🎁</span>
+        Забрать бонус
+      </a>
+    </div>
+  </div>
+</section>
+<!-- ЛУЧШИЕ КАЗИНО -->
+<section class="section">
+  <div class="container">
+    <div class="head">
+      <h2 class="h2">Лучшие площадки для игры Mines</h2>
+    </div>
+    <div class="casino-list">
+      <div class="casino-item">
+        <div class="casino-logo"><img src="images/brands/martin.png" alt="MARTIN" class="casino-logo"></div>
+        <div class="casino-info">
+          <div class="casino-name">🥇<strong><a href="https://martin-way-six.com/c0b5e0f74">MARTIN</a></strong></div>
+          <div class="casino-bonus">🎁ДО 225% + 600 FS</div>
+        </div>
+        <a href="https://martin-way-six.com/c0b5e0f74" class="casino-play-btn">Играть</a>
+      </div>
+      <div class="casino-item">
+        <div class="casino-logo"><img src="images/brands/1go.png" alt="1GO" class="casino-logo"></div>
+        <div class="casino-info">
+          <div class="casino-name">🥈<strong><a href="https://1go-blrs10.com/c91b15f9d">1GO</a></strong></div>
+          <div class="casino-bonus">🎁150%</div>
+        </div>
+        <a href="https://1go-blrs10.com/c91b15f9d" class="casino-play-btn">Играть</a>
+      </div>
+      <div class="casino-item">
+        <div class="casino-logo"><img src="images/brands/beef.png" alt="BEEF" class="casino-logo"></div>
+        <div class="casino-info">
+          <div class="casino-name">🥉<strong><a href="https://beef-way-two.com/c2feea520">BEEF</a></strong></div>
+          <div class="casino-bonus">🎁250% + 600 FS</div>
+        </div>
+        <a href="https://beef-way-two.com/c2feea520" class="casino-play-btn">Играть</a>
+      </div>
+      <div class="casino-item">
+        <div class="casino-logo"><img src="images/brands/dragon money.png" alt="DRAGON MONEY" class="casino-logo"></div>
+        <div class="casino-info">
+          <div class="casino-name">4️⃣<strong><a href="https://dgr.so/fpkjjxlyk">DRAGON MONEY</a></strong></div>
+          <div class="casino-bonus">🎁5%</div>
+        </div>
+        <a href="https://dgr.so/fpkjjxlyk" class="casino-play-btn">Играть</a>
+      </div>
+      <div class="casino-item">
+        <div class="casino-logo"><img src="images/brands/7k.png" alt="7K" class="casino-logo"></div>
+        <div class="casino-info">
+          <div class="casino-name">5️⃣<strong><a href="https://promooffer7000.com/l/68ec9ead437dfdd25602da52">7K</a></strong></div>
+          <div class="casino-bonus">🎁300 000₽ + 500 FS</div>
+        </div>
+        <a href="https://promooffer7000.com/l/68ec9ead437dfdd25602da52" class="casino-play-btn">Играть</a>
+      </div>
+      <div class="casino-item">
+        <div class="casino-logo"><img src="images/brands/arkada.png" alt="ARKADA" class="casino-logo"></div>
+        <div class="casino-info">
+          <div class="casino-name">6️⃣<strong><a href="https://grid-cyberlane.com/s6ffd8269">ARKADA</a></strong></div>
+          <div class="casino-bonus">🎁50%</div>
+        </div>
+        <a href="https://grid-cyberlane.com/s6ffd8269" class="casino-play-btn">Играть</a>
+      </div>
+      <div class="casino-item">
+        <div class="casino-logo"><img src="images/brands/r7.png" alt="R7" class="casino-logo"></div>
+        <div class="casino-info">
+          <div class="casino-name">7️⃣<strong><a href="https://sigreaciry.com/s69ebe2e6">R7</a></strong></div>
+          <div class="casino-bonus">🎁75% + 60 FS</div>
+        </div>
+        <a href="https://sigreaciry.com/s69ebe2e6" class="casino-play-btn">Играть</a>
+      </div>
+      <div class="casino-item">
+        <div class="casino-logo"><img src="images/brands/gama.png" alt="GAMA" class="casino-logo"></div>
+        <div class="casino-info">
+          <div class="casino-name">8️⃣<strong><a href="https://preesiader.com/scc925a36">GAMA</a></strong></div>
+          <div class="casino-bonus">🎁250 FS</div>
+        </div>
+        <a href="https://preesiader.com/scc925a36" class="casino-play-btn">Играть</a>
+      </div>
+      <div class="casino-item">
+        <div class="casino-logo"><img src="images/brands/kent.png" alt="KENT" class="casino-logo"></div>
+        <div class="casino-info">
+          <div class="casino-name">9️⃣<strong><a href="https://mealmenalc.com/sc48b011f">KENT</a></strong></div>
+          <div class="casino-bonus">🎁100% + 100 FS</div>
+        </div>
+        <a href="https://mealmenalc.com/sc48b011f" class="casino-play-btn">Играть</a>
+      </div>
+      <div class="casino-item">
+        <div class="casino-logo"><img src="images/brands/kometa.png" alt="KOMETA" class="casino-logo"></div>
+        <div class="casino-info">
+          <div class="casino-name">🔟<strong><a href="https://tropical-path.com/s1f3a3076">KOMETA</a></strong></div>
+          <div class="casino-bonus">🎁ДО 150 FS</div>
+        </div>
+        <a href="https://tropical-path.com/s1f3a3076" class="casino-play-btn">Играть</a>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- СТАТЬЯ -->
+<section class="section">
+  <div class="container">
+    <div class="head">
+      <h2 class="h2">Тактика игры Mines: рабочие стратегии и практический подход</h2>
+    </div>
+    <div class="article-card">
+<p>Игра Mines &mdash; один из самых популярных форматов мгновенной онлайн-игры, в котором результат зависит не только от удачи, но и от выбранной стратегии. Правильно построенная тактика игры Mines позволяет игроку снижать риски, брать контролируемые коэффициенты и получать прибыль на дистанции.</p>
+<p>Несмотря на простую механику &mdash; открыл клетку, получил множитель, попал на мину, проиграл &mdash; здесь есть место математике, аналитике и дисциплине.</p>
+<p>Чтобы выстроить эффективный подход, нужно понимать, как работает распределение мин, почему одни зоны поля безопаснее других и какая модель поведения приводит к стабильным результатам.</p>
+<p>В этой статье собраны конкретные, практические и действительно работающие стратегии, подходящие для тех, кто хочет использовать грамотную стратегию игры Mines и играть не вслепую, а осознанно.</p>
+<h2>Математическая основа игры и роль стратегии</h2>
+<p>Каждая партия начинается с выбора количества мин. От этого зависит вероятность успешного открытия клетки и величина коэффициента. Чем больше мин, тем выгоднее каждое действие, но тем выше риск.</p>
+<p>Стратегия &mdash; это баланс между этими двумя величинами. Игрок должен определить, какую вероятность он принимает и при каком коэффициенте готов забрать выигрыш.</p>
+<p>В отличие от хаотичного выбора клеток, осмысленная стратегия задает твёрдую структуру: последовательность действий, предельный риск, количество шагов и условия остановки. Благодаря этому поведение игрока становится предсказуемым, а результат &mdash; более стабильным.</p>
+<h3>Тактика &ldquo;Фиксированная тройка&rdquo; &mdash; для спокойной и уверенной игры</h3>
+<p>Это одна из самых популярных стратегий, которую используют игроки, предпочитающие низкую волатильность. Метод основан на том, что при небольшом количестве мин вероятность пройти три шага подряд остается высокой.</p>
+<p>Игрок выставляет три мины и каждый раунд открывает ровно три клетки &mdash; не больше и не меньше. После третьего успешного шага коэффициент всегда фиксируется. На дистанции эта стратегия показывает стабильный результат, потому что сочетает умеренный риск и системный подход.</p>
+<p>Она идеально подходит тем, кто рассматривает выигрыш в игре Mines на деньги как вопрос регулярной прибыли, а не попытки сорвать джекпот.</p>
+<h3>Тактика &ldquo;Угол&rdquo; &mdash; использование безопасных зон</h3>
+<p>На практике угловые клетки действительно оказываются статистически безопаснее. Это связано с тем, что большинство игроков предпочитают открывать центр поля, и генерации удачных последовательностей чаще формируются именно вокруг краёв.</p>
+<p>Тактика проста: игрок выбирает один угол и открывает клетку именно там в каждом новом раунде. Если первая клетка безопасна, допускается попробовать открыть вторую рядом с ней. После этого выигрыш фиксируется.</p>
+<p>Эта стратегия приносит небольшие коэффициенты, но демонстрирует высокую проходимость, что важно для аккуратных игроков.</p>
+<h3>Тактика &ldquo;Пирамидальная&rdquo; &mdash; оптимальный путь к средним коэффициентам</h3>
+<p>Если нужны коэффициенты уровня 2.0&ndash;3.0 без излишнего риска, подходит пирамидальная схема. Игрок выбирает 5&ndash;7 мин, что создает средний уровень риска, а затем начинает движение по диагонали.</p>
+<p>Первая клетка открывается в верхнем левом или правом углу. Вторая &mdash; чуть ниже по диагонали. Третья &mdash; в сторону от второй. Движение формирует &laquo;пирамиду&raquo;, уменьшая вероятность попасть на мину из-за разнесенной логики открытий.</p>
+<p>Такой подход позволяет не рисковать центром поля, где чаще встречаются мины, и при этом уверенно строить коэффициент.</p>
+<h3>Тактика &ldquo;Один сектор&rdquo; &mdash; строгая дисциплина и контроль хаоса</h3>
+<p>Игрок мысленно делит поле на четыре сектора. Весь раунд он открывает клетки только в одном выбранном секторе, не переключаясь между зонами. Отличительная особенность этой стратегии &mdash; жёсткая дисциплина. Игрок не прыгает по полю, не полагается на интуицию, не пытается угадать &laquo;где повезет&raquo;.</p>
+<p>Такой подход уменьшает влияние случайности: если сектор оказался &laquo;чистым&raquo;, можно пройти несколько шагов подряд; если &laquo;грязным&raquo;, игрок теряет минимальный банк и переходит к следующему раунду. На дистанции это дает ровную статистику и предсказуемое поведение.</p>
+<h2>Как выбирать стратегию и адаптировать её под свой стиль</h2>
+<p>Каждая стратегия работает только тогда, когда игрок придерживается правил. Если использовать импульсивные решения &mdash; попытки открыть &laquo;ещё одну клетку&raquo;, играть догоном или менять количество мин после проигрыша &mdash; эффективность падает.</p>
+<p>Правильный подход включает три ключевых момента:</p>
+<ul>
+<li>во-первых, фиксированную ставку;</li>
+<li>во-вторых, заранее определенный коэффициент, на котором игрок забирает выигрыш;</li>
+<li>в-третьих, постоянство. Стратегия раскрывается только на дистанции и даёт результат тем, кто следует ей строго.</li>
+</ul>
+<h2>Заключение</h2>
+<p>Игра Mines &mdash; это не хаос и не чистая удача. Правильная тактика в игре Mines позволяет построить предсказуемую модель поведения и зарабатывать на длительной дистанции.</p>
+<p>Каждая из предложенных стратегий &mdash; &ldquo;Фиксированная тройка&rdquo;, &ldquo;Угол&rdquo;, &ldquo;Пирамидальная&rdquo; и &ldquo;Один сектор&rdquo; &mdash; имеет свои сильные стороны и подходит для разных типов игроков.</p>
+<p>Если выбирать их осознанно, соблюдать дисциплину и не нарушать собственные правила, даже динамичная игра на минном поле превращается в контролируемый процесс.</p>
+<p>И именно такой подход отвечает на вопрос как выиграть в Mines: побеждает тот, кто играет системой, а не эмоциями.</p>
+    </div>
+  </div>
+</section>
+<!-- FAQ -->
+<section class="section">
+  <div class="container">
+    <div class="head">
+      <h2 class="h2">Часто задаваемые вопросы</h2>
+    </div>
+    <div style="display:grid;gap:16px;max-width:var(--container);margin:0 auto;">
+      <details>
+        <summary>Можно ли стратегиями обеспечить стабильный выигрыш в Mines?</summary>
+        <p>Нет, поскольку игра основана на случайности. Стратегии помогают действовать более дисциплинированно и контролировать собственное поведение, но они не меняют вероятности выпадения мин и не гарантируют прибыли.</p>
+      </details>
+      <details>
+        <summary>Зачем тогда использовать стратегии?</summary>
+        <p>Они нужны для того, чтобы избежать хаотичных решений и заранее определить рамки игры: размер ставки, желаемый коэффициент и модель поведения. Это делает процесс более осознанным, хотя и не отменяет риск.</p>
+      </details>
+      <details>
+        <summary>Как выбрать подходящую тактику?</summary>
+        <p>Выбор зависит от того, насколько игроку комфортен риск. Спокойные модели подходят тем, кто предпочитает небольшие коэффициенты, а более динамичные — тем, кто готов принимать повышенную вероятность неудачных раундов. Важно придерживаться выбранного подхода и не менять его из-за эмоций.</p>
+      </details>
+      <details>
+        <summary>Что помогает уменьшить риски во время игры?</summary>
+        <p>Полезно заранее определять лимиты по ставкам и времени, фиксировать точку выхода из раунда и не превышать свой игровой бюджет. Осознание того, что каждая партия полностью случайна, позволяет избегать импульсивных попыток «добыть» выигрыш любой ценой.</p>
+      </details>
+    </div>
+  </div>
+</section>
+<!-- FOOTER -->
+<footer>
+  <div class="container">
+    <div class="foot">
+      <p>Играйте ответственно. 18+</p>
+      <p>© 2025 Mines. Азартная игра о стратегии и удаче.</p>
+      <div class="payment-methods">
+        <div class="payment-logo"><img src="images/payments/visa.svg" alt="Visa" class="payment-logo"></div>
+        <div class="payment-logo"><img src="images/payments/mastercard.svg" alt="Mastercard" class="payment-logo"></div>
+        <div class="payment-logo"><img src="images/payments/mir.svg" alt="Mir" class="payment-logo"></div>
+        <div class="payment-logo"><img src="images/payments/SBP.svg" alt="SBP" class="payment-logo"></div>
+        <div class="payment-logo"><img src="images/payments/piastrix.svg" alt="Piastrix" class="payment-logo"></div>
+        <div class="payment-logo"><img src="images/payments/USDT.svg" alt="USDT" class="payment-logo"></div>
+        <div class="payment-logo"><img src="images/payments/USDC.svg" alt="USDC" class="payment-logo"></div>
+        <div class="payment-logo"><img src="images/payments/BTC.svg" alt="BTC" class="payment-logo"></div>
+        <div class="payment-logo"><img src="images/payments/TON.svg" alt="TON" class="payment-logo"></div>
+      </div>
+    </div>
+  </div>
+</footer>
+<script>
+  function adjustHeaderPadding() {
+    const headers = document.querySelectorAll('.title, .h2');
+    if (window.innerWidth <= 600) {
+      headers.forEach(header => {
+        header.style.padding = '0 10px';
+      });
+    } else if (window.innerWidth <= 900) {
+      headers.forEach(header => {
+        header.style.padding = '0 15px';
+      });
+    } else {
+      headers.forEach(header => {
+        header.style.padding = '0';
+      });
+    }
+  }
+  adjustHeaderPadding();
+  window.addEventListener('resize', adjustHeaderPadding);
+  // Mobile menu functionality
+  const menuToggle = document.getElementById('menuToggle');
+  const menuClose = document.getElementById('menuClose');
+  const mobileMenu = document.getElementById('mobileMenu');
+  menuToggle.addEventListener('click', () => {
+    mobileMenu.classList.add('active');
+    document.body.style.overflow = 'hidden';
+  });
+  menuClose.addEventListener('click', () => {
+    mobileMenu.classList.remove('active');
+    document.body.style.overflow = '';
+  });
+  document.querySelectorAll('.mobile-menu .nav-link').forEach(link => {
+    link.addEventListener('click', () => {
+      mobileMenu.classList.remove('active');
+      document.body.style.overflow = '';
+    });
+  });
+  mobileMenu.addEventListener('click', (e) => {
+    if (e.target === mobileMenu) {
+      mobileMenu.classList.remove('active');
+      document.body.style.overflow = '';
+    }
+  });
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && mobileMenu.classList.contains('active')) {
+      mobileMenu.classList.remove('active');
+      document.body.style.overflow = '';
+    }
+  });
+  // === Players online counter ===
+  function updatePlayerCount() {
+    const min = 2311;
+    const max = 3576;
+    const count = Math.floor(Math.random() * (max - min + 1)) + min;
+    document.getElementById('playerCount').textContent = count.toLocaleString('ru-RU');
+  }
+  updatePlayerCount();
+  setInterval(updatePlayerCount, Math.floor(Math.random() * 8000) + 12000);
+</script>
+</body>
+</html>
